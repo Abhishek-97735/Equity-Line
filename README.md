@@ -1,6 +1,6 @@
 # Equity Line
 
-Equity Line is a custom MT4/MT5/cTrader indicator coded by EarnForex.com. It calculates and displays the projected equity value based on the current portfolio of positions and the given price level.
+Equity Line is a custom MT4/MT5/cTrader indicator coded by EarnForex.com. It calculates and displays the projected equity value (together with expected floating profit/loss) based on the current portfolio of positions and the given price level.
 
 It can be easily turned on/off by pressing Shift+E.
 
