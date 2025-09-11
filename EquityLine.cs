@@ -3,7 +3,7 @@
 //   Takes into account P&L of open trades in the current symbol.
 //   You can hide/show the line by pressing Shift+E.
 //   
-//   Version 1.00
+//   Version 1.01
 //   Copyright 2025, EarnForex.com
 //   https://www.earnforex.com/indicators/Entry-Line/
 // -------------------------------------------------------------------------------
@@ -33,9 +33,6 @@ namespace cAlgo
         [Parameter("Show Equity Label", DefaultValue = true)]
         public bool ShowLabel { get; set; }
 
-        [Parameter("Equity Label Prefix", DefaultValue = "EQUITY: ")]
-        public string EquityLabelPrefix { get; set; }
-
         [Parameter("Label PositiveChange Color", DefaultValue = "Green")]
         public Color LabelPositiveChangeColor { get; set; }
 
@@ -52,6 +49,7 @@ namespace cAlgo
         private ChartText equityLabel;
         private double projectionPrice = 0;
         private double projectedEquity = 0;
+        private double totalFloatingProfit = 0;
         private bool isVisible = true;
 
         protected override void Initialize()
@@ -134,6 +132,8 @@ namespace cAlgo
             
             // Calculate total P&L change for positions in current symbol.
             double totalPLChange = 0;
+            
+            double floatingProfit = 0;
 
             // Get all positions for current symbol.
             var symbolPositions = Positions.Where(p => p.SymbolName == Symbol.Name);
@@ -141,9 +141,9 @@ namespace cAlgo
             foreach (var position in symbolPositions)
             {
                 double posLots = position.VolumeInUnits;
-                
+                floatingProfit += position.NetProfit;
                 // Calculate point value for this position.
-                double pointValue = Symbol.PipValue * position.VolumeInUnits / Symbol.LotSize;
+                double pointValue = Symbol.PipValue * position.VolumeInUnits;
                 
                 // Calculate projected P&L at projection price.
                 double projectedPL = 0;
@@ -166,6 +166,9 @@ namespace cAlgo
                
                 totalPLChange += projectedPL;
             }
+
+            // For output.
+            totalFloatingProfit = totalPLChange + floatingProfit;
 
             // Calculate projected equity.
             projectedEquity = currentEquity + totalPLChange;
@@ -217,7 +220,7 @@ namespace cAlgo
             }
 
             // Format equity text with proper decimal places.
-            string equityText = EquityLabelPrefix + projectedEquity.ToString("F2");
+            string equityText = $"Equity: {projectedEquity:N2} {Account.Asset.Name} (Floating profit: {totalFloatingProfit:N2} {Account.Asset.Name})";
 
             // Calculate color based on equity change.
             double currentEquity = Account.Equity;

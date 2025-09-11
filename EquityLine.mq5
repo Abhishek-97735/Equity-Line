@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 #property copyright "www.EarnForex.com, 2025"
 #property link      "https://www.earnforex.com/indicators/Equity-Line/"
-#property version   "1.00"
+#property version   "1.01"
 #property indicator_chart_window
 #property indicator_plots 0
 
@@ -18,7 +18,6 @@ input color  LineColor = clrDodgerBlue;        // Projection line color
 input int    LineWidth = 2;                    // Projection line width
 input ENUM_LINE_STYLE LineStyle = STYLE_SOLID; // Projection line style
 input bool   ShowLabel = true;                 // Show equity label
-input string EquityLabelPrefix = "EQUITY: ";   // Equity label prefix
 input color  LabelPositiveChangeColor = clrGreen; // Equity label color (positive change)
 input color  LabelNegativeChangeColor = clrRed; // Equity label color (negative change)
 input int    InitialPriceOffset = 50;          // Initial price offset in points
@@ -28,6 +27,7 @@ string LineObjectName = "EquityProjectionLine";
 string EquityLabelObjectName = "EquityProjectionLabel";
 double ProjectionPrice = 0;
 double ProjectedEquity = 0;
+double totalFloatingProfit = 0;
 
 void OnInit()
 {
@@ -136,6 +136,8 @@ void CalculateProjectedEquity()
     // Calculate total P&L change for positions in current symbol.
     double totalPLChange = 0;
     
+    double floatingProfit = 0;
+    
     // Scan all positions.
     int totalPositions = PositionsTotal();
     for (int i = 0; i < totalPositions; i++)
@@ -167,6 +169,7 @@ void CalculateProjectedEquity()
                     if (priceDiff < 0) projectedPL = priceDiff * point_value_reward * posLots;
                     else projectedPL = priceDiff * point_value_risk * posLots;
                 }
+                floatingProfit += PositionGetDouble(POSITION_PROFIT) + PositionGetDouble(POSITION_SWAP) + CalculateCommission();
                 totalPLChange += projectedPL;
             }
         }
@@ -174,9 +177,36 @@ void CalculateProjectedEquity()
     
     // Calculate projected equity.
     ProjectedEquity = currentEquity + totalPLChange;
-    
+
+    // For output.
+    totalFloatingProfit = totalPLChange + floatingProfit;
+
     // Update display.
     UpdateLabel();
+}
+
+double CalculateCommission()
+{
+    double commission_sum = 0;
+    if (!HistorySelectByPosition(PositionGetInteger(POSITION_IDENTIFIER)))
+    {
+        Print("HistorySelectByPosition failed: ", GetLastError());
+        return 0;
+    }
+    int deals_total = HistoryDealsTotal();
+    for (int i = 0; i < deals_total; i++)
+    {
+        ulong deal_ticket = HistoryDealGetTicket(i);
+        if (deal_ticket == 0)
+        {
+            Print("HistoryDealGetTicket failed: ", GetLastError());
+            continue;
+        }
+        if ((HistoryDealGetInteger(deal_ticket, DEAL_TYPE) != DEAL_TYPE_BUY) && (HistoryDealGetInteger(deal_ticket, DEAL_TYPE) != DEAL_TYPE_SELL)) continue; // Wrong kinds of deals.
+        if (HistoryDealGetInteger(deal_ticket, DEAL_ENTRY) != DEAL_ENTRY_IN) continue; // Only entry deals.
+        commission_sum += HistoryDealGetDouble(deal_ticket, DEAL_COMMISSION);
+    }
+    return commission_sum;
 }
 
 // Draw projection line on chart.
@@ -216,7 +246,7 @@ void UpdateLabel()
     // Get the leftmost and rightmost visible bars.
     int firstVisibleBar = (int)ChartGetInteger(ChartID(), CHART_FIRST_VISIBLE_BAR);
 
-    string equityText = EquityLabelPrefix + DoubleToString(ProjectedEquity, (int)AccountInfoInteger(ACCOUNT_CURRENCY_DIGITS));
+    string equityText = "Equity: " + FormatDouble(DoubleToString(ProjectedEquity, (int)AccountInfoInteger(ACCOUNT_CURRENCY_DIGITS)), (int)AccountInfoInteger(ACCOUNT_CURRENCY_DIGITS)) + " " + AccCurrency + " (Floating profit: " + FormatDouble(DoubleToString(totalFloatingProfit, (int)AccountInfoInteger(ACCOUNT_CURRENCY_DIGITS)), (int)AccountInfoInteger(ACCOUNT_CURRENCY_DIGITS)) + " " + AccCurrency + ")";
 
     // Calculate color based on equity change.
     double currentEquity = AccountInfoDouble(ACCOUNT_EQUITY);
@@ -404,5 +434,36 @@ double GetCurrencyCorrectionCoefficient(MqlTick &tick, const mode_of_operation m
         }
     }
     return -1;
+}
+
+//+---------------------------------------------------------------------------+
+//| Formats double with thousands separator for so many digits after the dot. |
+//+---------------------------------------------------------------------------+
+string FormatDouble(const string number, const int digits = 2)
+{
+    // Find "." position.
+    int pos = StringFind(number, ".");
+    string integer = number;
+    string decimal = "";
+    if (pos > -1)
+    {
+        integer = StringSubstr(number, 0, pos);
+        decimal = StringSubstr(number, pos, digits + 1);
+    }
+    string formatted = "";
+    string comma = "";
+
+    while (StringLen(integer) > 3)
+    {
+        int length = StringLen(integer);
+        string group = StringSubstr(integer, length - 3);
+        formatted = group + comma + formatted;
+        comma = ",";
+        integer = StringSubstr(integer, 0, length - 3);
+    }
+    if (integer == "-") comma = "";
+    if (integer != "") formatted = integer + comma + formatted;
+
+    return(formatted + decimal);
 }
 //+------------------------------------------------------------------+

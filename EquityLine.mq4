@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 #property copyright "www.EarnForex.com, 2025"
 #property link      "https://www.earnforex.com/indicators/Equity-Line/"
-#property version   "1.00"
+#property version   "1.01"
 #property indicator_chart_window
 #property strict
 
@@ -18,7 +18,6 @@ input color  LineColor = clrDodgerBlue;        // Projection line color
 input int    LineWidth = 2;                    // Projection line width
 input ENUM_LINE_STYLE LineStyle = STYLE_SOLID; // Projection line style
 input bool   ShowLabel = true;                 // Show equity label
-input string EquityLabelPrefix = "EQUITY: ";   // Equity label prefix
 input color  LabelPositiveChangeColor = clrGreen; // Equity label color (positive change)
 input color  LabelNegativeChangeColor = clrRed; // Equity label color (negative change)
 input int    InitialPriceOffset = 50;          // Initial price offset in points
@@ -28,6 +27,7 @@ string LineObjectName = "EquityProjectionLine";
 string EquityLabelObjectName = "EquityProjectionLabel";
 double ProjectionPrice = 0;
 double ProjectedEquity = 0;
+double totalFloatingProfit = 0;
 
 void OnInit()
 {
@@ -130,6 +130,8 @@ void CalculateProjectedEquity()
     // Calculate total P&L change for positions in current symbol.
     double totalPLChange = 0;
     
+    double floatingProfit = 0;
+
     // Scan all positions.
     int totalOrders = OrdersTotal();
     for (int i = 0; i < totalOrders; i++)
@@ -162,6 +164,7 @@ void CalculateProjectedEquity()
                 if (priceDiff < 0) projectedPL = priceDiff * point_value_reward * posLots;
                 else projectedPL = priceDiff * point_value_risk * posLots;
             }
+            floatingProfit += OrderProfit() + OrderSwap() + OrderCommission();
             totalPLChange += projectedPL;
         }
     }
@@ -169,6 +172,9 @@ void CalculateProjectedEquity()
     // Calculate projected equity.
     ProjectedEquity = currentEquity + totalPLChange;
     
+    // For output.
+    totalFloatingProfit = totalPLChange + floatingProfit;
+
     // Update display.
     UpdateLabel();
 }
@@ -211,7 +217,7 @@ void UpdateLabel()
     // Get the leftmost and rightmost visible bars.
     int firstVisibleBar = (int)ChartGetInteger(ChartID(), CHART_FIRST_VISIBLE_BAR);
 
-    string equityText = EquityLabelPrefix + DoubleToString(ProjectedEquity, 2);
+    string equityText = "Equity: " + FormatDouble(DoubleToString(ProjectedEquity, 2), 2) + " " + AccCurrency + " (Floating profit: " + FormatDouble(DoubleToString(totalFloatingProfit, 2), 2) + " " + AccCurrency + ")";
 
     // Calculate color based on equity change.
     double currentEquity = AccountEquity();
@@ -468,5 +474,36 @@ double GetCurrencyCorrectionCoefficient(MqlTick &tick, const mode_of_operation m
         }
     }
     return -1;
+}
+
+//+---------------------------------------------------------------------------+
+//| Formats double with thousands separator for so many digits after the dot. |
+//+---------------------------------------------------------------------------+
+string FormatDouble(const string number, const int digits = 2)
+{
+    // Find "." position.
+    int pos = StringFind(number, ".");
+    string integer = number;
+    string decimal = "";
+    if (pos > -1)
+    {
+        integer = StringSubstr(number, 0, pos);
+        decimal = StringSubstr(number, pos, digits + 1);
+    }
+    string formatted = "";
+    string comma = "";
+
+    while (StringLen(integer) > 3)
+    {
+        int length = StringLen(integer);
+        string group = StringSubstr(integer, length - 3);
+        formatted = group + comma + formatted;
+        comma = ",";
+        integer = StringSubstr(integer, 0, length - 3);
+    }
+    if (integer == "-") comma = "";
+    if (integer != "") formatted = integer + comma + formatted;
+
+    return(formatted + decimal);
 }
 //+------------------------------------------------------------------+
